@@ -44,6 +44,12 @@ docker run \
         hexagon/spotprice-mqtt
 ```
 
+Logs available by running
+
+```
+docker logs spotprice-mqtt
+```
+
 ### Manual/Local installation
 
 If you want to build the docker image yourself, clone this repository and run
@@ -52,6 +58,9 @@ If you want to build the docker image yourself, clone this repository and run
 
 Then use the command from the installation section, but replace ```hexagon/spotprice-mqtt``` with ```local-spotprice-mqtt```.
 
+```
+docker run -d --net=host --restart=always -e SP_MQTT_HOST=192.168.1.4 -e SP_MQTT_PORT=1883 -e SP_CURRENCY=SEK -e SP_AREA=SE2 -e SP_TOPIC=homeassistant/sensor/ -e SP_ENTITY=spotprice --name="spotprice-mqtt" local-spotprice-mqtt
+```
 ### Upgrading from a previous version
 
 First stop and remove previous version
