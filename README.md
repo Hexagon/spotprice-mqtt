@@ -40,6 +40,7 @@ docker run \
         -e SP_AREA=SE2 \
         -e SP_TOPIC=homeassistant/sensor/ \
         -e SP_ENTITY=spotprice \
+        -e SP_DECIMALS=5 \
         --name="spotprice-mqtt" \
         hexagon/spotprice-mqtt
 ```
@@ -75,4 +76,4 @@ Then follow the above instruction to re-install from Docker Hub (or manually if 
 
 Something like this:
 
-`deno run -A .\src\spotpricer.js --host=192.168.1.4 --port=1883 --currency=NOK --area SE2 --currency SEK --topic=homeassistant/sensor/ --entity spotprice`
+`deno run -A .\src\spotpricer.js --host=192.168.1.4 --port=1883 --currency=NOK --area SE2 --currency SEK --topic=homeassistant/sensor/ --entity spotprice --decimals 5`
