@@ -4,7 +4,7 @@ import { parse } from "https://deno.land/std/flags/mod.ts"
 
 // Parse arguments
 const spArgs = parse(Deno.args, {
-    default: { host: undefined, port: undefined, topic: "homeassistant/sensor/", entity:"spotprice", area: "SE2", currency: "SEK", decimals: 5 }
+    default: { host: undefined, port: undefined, topic: "homeassistant/sensor/", entity:"spotprice", area: "SE2", currency: "SEK", decimals: 5, factor: 1, extra: 0 }
 });
 
 // Send to mqtt
@@ -14,6 +14,8 @@ const
     spCurrency = spArgs.currency.trim().toUpperCase(),
     spArea = spArgs.area.trim().toUpperCase(),
     spDecimals = parseInt(spArgs.decimals, 10),
+    spFactor = parseFloat(spArgs.factor),
+    spExtra = parseFloat(spArgs.extra),
     mqttHost = spArgs.host,
     mqttPort = spArgs.port;
 
@@ -109,6 +111,11 @@ async function publishDevice(name, id, state) {
     }
 }
 
+function preparePrice(price) {
+    price = price * spFactor + spExtra;
+    return price.toFixed(spDecimals);
+}
+
 const dateTomorrow = new Date(new Date().getTime()+oneDayMs);
 dateTomorrow.setHours(0);
 dateTomorrow.setMinutes(0);
@@ -118,17 +125,17 @@ const
     extremesToday = findMinMaxPriceAtDate(new Date()),
     extremesTomorrow = findMinMaxPriceAtDate(dateTomorrow);
 
-await publishDevice("Spot price now", baseEntity + "_now", (findPriceAt(new Date())/1000).toFixed(spDecimals));
-await publishDevice("Spot price in 1 hour", baseEntity + "_1h", (findPriceAt(new Date(new Date().getTime()+oneHourMs))/1000).toFixed(spDecimals));
-await publishDevice("Spot price in 6 hours", baseEntity + "_6h", (findPriceAt(new Date(new Date().getTime()+oneHourMs*6))/1000).toFixed(spDecimals));
-await publishDevice("Spot price in 12 hours", baseEntity + "_12h", (findPriceAt(new Date(new Date().getTime()+oneHourMs*12))/1000).toFixed(spDecimals));
-await publishDevice("Highest upcomping spot price today ", baseEntity + "_today_max", (extremesToday.maxVal/1000).toFixed(spDecimals));
+await publishDevice("Spot price now", baseEntity + "_now", preparePrice(findPriceAt(new Date())/1000));
+await publishDevice("Spot price in 1 hour", baseEntity + "_1h", preparePrice(findPriceAt(new Date(new Date().getTime()+oneHourMs))/1000));
+await publishDevice("Spot price in 6 hours", baseEntity + "_6h", preparePrice(findPriceAt(new Date(new Date().getTime()+oneHourMs*6))/1000));
+await publishDevice("Spot price in 12 hours", baseEntity + "_12h", preparePrice(findPriceAt(new Date(new Date().getTime()+oneHourMs*12))/1000));
+await publishDevice("Highest upcomping spot price today ", baseEntity + "_today_max", preparePrice(extremesToday.maxVal/1000));
 await publishDevice("Highest upcomping spot price today time", baseEntity + "_today_max_time", extremesToday.maxTime.toISOString());
-await publishDevice("Lowest upcomping spot price today", baseEntity + "_today_min", (extremesToday.minVal/1000).toFixed(spDecimals));
+await publishDevice("Lowest upcomping spot price today", baseEntity + "_today_min", preparePrice(extremesToday.minVal/1000));
 await publishDevice("Lowest upcomping spot price today time", baseEntity + "_today_min_time", extremesToday.minTime.toISOString());
-await publishDevice("Highest upcomping spot price tomorrow", baseEntity + "_tomorrow_max", (extremesTomorrow.maxVal/1000).toFixed(spDecimals));
+await publishDevice("Highest upcomping spot price tomorrow", baseEntity + "_tomorrow_max", preparePrice(extremesTomorrow.maxVal/1000));
 await publishDevice("Highest upcomping spot price tomorrow time", baseEntity + "_tomorrow_max_time", extremesTomorrow.maxTime.toISOString());
-await publishDevice("Lowest upcomping spot price tomorrow", baseEntity + "_tomorrow_min", (extremesTomorrow.minVal/1000).toFixed(spDecimals));
+await publishDevice("Lowest upcomping spot price tomorrow", baseEntity + "_tomorrow_min", preparePrice(extremesTomorrow.minVal/1000));
 await publishDevice("Lowest upcomping spot price tomorrow time", baseEntity + "_tomorrow_min_time", extremesTomorrow.minTime.toISOString());
 
 await client.disconnect();

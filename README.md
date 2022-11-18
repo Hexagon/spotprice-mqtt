@@ -40,6 +40,7 @@ These environment variables can be sent to docker
 | SP_TOPIC      | Base topic                          | homeassistant/sensors/ |
 | SP_ENTITY     | Beginning of sensor names           | spotprice              |
 | SP_DECIMALS   | Maximum number of decimals in price | 4                      |
+| SP_FACTOR     | Price correction factor             | 1                      |
 
 Example command using homeassistant/sensors/ as base topic, which will make HA autodiscover the entities.
 
@@ -55,6 +56,7 @@ docker run \
         -e SP_TOPIC=homeassistant/sensor/ \
         -e SP_ENTITY=spotprice \
         -e SP_DECIMALS=5 \
+        -e SP_FACTOR=1 \
         --name="spotprice-mqtt" \
         hexagon/spotprice-mqtt:latest
 ```
@@ -94,4 +96,4 @@ Then follow the above instruction to re-install from Docker Hub (or manually if 
 
 Something like this:
 
-`deno run -A .\src\spotpricer.js --host=192.168.1.4 --port=1883 --currency=NOK --area SE2 --currency SEK --topic=homeassistant/sensor/ --entity spotprice --decimals 5`
+`deno run -A .\src\spotpricer.js --host=192.168.1.4 --port=1883 --currency=NOK --area SE2 --factor 1 --currency SEK --topic=homeassistant/sensor/ --entity spotprice --decimals 5 --factor 1 --extra 0`
