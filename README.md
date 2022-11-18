@@ -41,6 +41,9 @@ These environment variables can be sent to docker
 | SP_ENTITY     | Beginning of sensor names           | spotprice              |
 | SP_DECIMALS   | Maximum number of decimals in price | 4                      |
 | SP_FACTOR     | Price correction factor             | 1                      |
+| SP_EXTRA      | Price correction before factor      | 0                      |
+
+To get actual prices in sweden as of nov 2022 you set SP_EXTRA to about 0.10 (10 öre certificate fees etc), and SP_FACTOR to 1.25 (25% VAT)
 
 Example command using homeassistant/sensors/ as base topic, which will make HA autodiscover the entities.
 

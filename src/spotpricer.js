@@ -112,7 +112,7 @@ async function publishDevice(name, id, state) {
 }
 
 function preparePrice(price) {
-    price = price * spFactor + spExtra;
+    price = (price + spExtra) * spFactor;
     return price.toFixed(spDecimals);
 }
 
