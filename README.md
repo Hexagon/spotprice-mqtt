@@ -6,7 +6,26 @@ This project provides a docker image which allows users collect spot prices from
 
 ### Installing from Docker Hub
 
-Install from Docker hub using the following command, make sure to change SP_MQTT_HOST/PORT to your own settings.
+Install from Docker hub using the following command, make sure to change SP_MQTT_HOST/PORT/CURRENCY/AREA/TOPIC/ENTITY to your own settings.
+
+With the default/example settings, the image will fetch spot prices every full hour, and forward it to homeassistant/sensor/spotprice_*/state, it will also send homeassistant/sensor/spotprice_*/config to make mqtt autodiscover the entities correctly.
+
+These sensors are provided
+
+```
+sensor.spotprice_now
+sensor.spotprice_1h - spot price in 1 hour
+sensor.spotprice_6h - spot price in 6 hours
+sensor.spotprice_12h - spot price in 12 hour
+sensor.spotprice_today_max
+sensor.spotprice_today_max_time
+sensor.spotprice_today_min
+sensor.spotprice_today_min_time
+sensor.spotprice_tomorrow_max
+sensor.spotprice_tomorrow_max_time
+sensor.spotprice_tomorrow_min
+sensor.spotprice_tomorrow_min_time
+```
 
 Please note that spotprice-mqtt doesn't support mqtt authentication yet.
 

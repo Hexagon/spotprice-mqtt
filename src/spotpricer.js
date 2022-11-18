@@ -118,7 +118,7 @@ const
     extremesTomorrow = findMinMaxPriceAtDate(dateTomorrow);
 
 await publishDevice("Spot price now", baseEntity + "_now", findPriceAt(new Date())/1000);
-await publishDevice("Spot price in 1 hour", baseEntity + "e_1h", findPriceAt(new Date(new Date().getTime()+oneHourMs))/1000);
+await publishDevice("Spot price in 1 hour", baseEntity + "_1h", findPriceAt(new Date(new Date().getTime()+oneHourMs))/1000);
 await publishDevice("Spot price in 6 hours", baseEntity + "_6h", findPriceAt(new Date(new Date().getTime()+oneHourMs*6))/1000);
 await publishDevice("Spot price in 12 hours", baseEntity + "_12h", findPriceAt(new Date(new Date().getTime()+oneHourMs*12))/1000);
 await publishDevice("Highest upcomping spot price today ", baseEntity + "_today_max", extremesToday.maxVal/1000);
