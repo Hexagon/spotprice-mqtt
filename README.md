@@ -34,7 +34,6 @@ docker run \
         -d \
         --net=host \
         --restart=always \
-        --privileged \
         -e SP_MQTT_HOST=192.168.1.4 \
         -e SP_MQTT_PORT=1883 \
         -e SP_CURRENCY=SEK \

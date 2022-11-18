@@ -100,8 +100,8 @@ async function publishDevice(name, id, state) {
             object_id: id
         };
     try {
-        await client.publish(stateTopic, state.toString());
-        await client.publish(configTopic, JSON.stringify(deviceConfig));    
+        await client.publish(configTopic, JSON.stringify(deviceConfig)); 
+        await client.publish(stateTopic, state.toString());   
     } catch (e) {
         logger("failed to publish " + e.toString());
         Deno.exit(1)
