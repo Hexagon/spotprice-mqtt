@@ -8,26 +8,40 @@ This project provides a docker image which allows users collect spot prices from
 
 Install from Docker hub using the following command, make sure to change SP_MQTT_HOST/PORT/CURRENCY/AREA/TOPIC/ENTITY/DECIMALS to your own settings.
 
+Please note that spotprice-mqtt doesn't support mqtt authentication yet.
+
 With the default/example settings, the image will fetch spot prices every full hour, and forward it to homeassistant/sensor/spotprice_*/state, it will also send homeassistant/sensor/spotprice_*/config to make mqtt autodiscover the entities correctly.
 
-These sensors are provided
+These sensors are provided (if you use the default value for SP_ENTITY, which is "spotprice")
 
-```
-sensor.spotprice_now
-sensor.spotprice_1h - spot price in 1 hour
-sensor.spotprice_6h - spot price in 6 hours
-sensor.spotprice_12h - spot price in 12 hour
-sensor.spotprice_today_max
-sensor.spotprice_today_max_time
-sensor.spotprice_today_min
-sensor.spotprice_today_min_time
-sensor.spotprice_tomorrow_max
-sensor.spotprice_tomorrow_max_time
-sensor.spotprice_tomorrow_min
-sensor.spotprice_tomorrow_min_time
-```
+| Sensor                                       | Type  | Description                           |
+|----------------------------------------------|-------|---------------------------------------|
+| sensor.spotprice_now                         | Float | Spot price right now                   |
+| sensor.spotprice_1h - spot price in 1 hour   | Float | Spot price for next hour               |
+| sensor.spotprice_6h - spot price in 6 hours  | Float | Spot price 6 hours from now            |
+| sensor.spotprice_12h - spot price in 12 hour | Float | Spot price 6 hours from now            |
+| sensor.spotprice_today_max                   | Float | Highest spot price today               |
+| sensor.spotprice_today_max_time              | ISO8601 date | Datetime when highest spot price occur |
+| sensor.spotprice_today_min                   | Float | Lowest spot price today                |
+| sensor.spotprice_today_min_time              | ISO8601 date | Datetime when lowest spot price occur  |
+| sensor.spotprice_tomorrow_max                | Float | Highest spot price tomorrow            |
+| sensor.spotprice_tomorrow_max_time           | ISO8601 date | Datetime when highest spot price occur |
+| sensor.spotprice_tomorrow_min                | Float | Lowest spot price tomorrow             |
+| sensor.spotprice_tomorrow_min_time           | ISO8601 date | Datetime when lowest spot price occur  |
 
-Please note that spotprice-mqtt doesn't support mqtt authentication yet.
+These environment variables can be sent to docker
+
+| Variable name | Description                         | Example                |
+|---------------|-------------------------------------|------------------------|
+| SP_MQTT_HOST  | IP to MQTT broker                   | 192.168.1.4            |
+| SP_MQTT_PORT  | Port on MQTT broker                 | 1883                   |
+| SP_CURRENCY   | Currency                            | SEK                    |
+| SP_AREA       | Electricity price area              | SE4                    |
+| SP_TOPIC      | Base topic                          | homeassistant/sensors/ |
+| SP_ENTITY     | Beginning of sensor names           | spotprice              |
+| SP_DECIMALS   | Maximum number of decimals in price | 4                      |
+
+Example command using homeassistant/sensors/ as base topic, which will make HA autodiscover the entities.
 
 ```
 docker run \
@@ -45,7 +59,7 @@ docker run \
         hexagon/spotprice-mqtt:latest
 ```
 
-Logs available by running
+View logs by running
 
 ```
 docker logs spotprice-mqtt
@@ -69,6 +83,8 @@ First stop and remove previous version
 ```docker stop spotprice-mqtt```
 
 ```docker rm spotprice-mqtt```
+
+Then pull the latest version
 
 ```docker pull hexagon/spotprice-mqtt:latest```
 
