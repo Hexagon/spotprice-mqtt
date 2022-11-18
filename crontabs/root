@@ -1,0 +1,2 @@
+#!/bin/sh
+*/30 * * * * 	/bin/sh /spotprice-mqtt/spotprice-mqtt.sh
