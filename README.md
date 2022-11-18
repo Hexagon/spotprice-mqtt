@@ -6,7 +6,7 @@ This project provides a docker image which allows users collect spot prices from
 
 ### Installing from Docker Hub
 
-Install from Docker hub using the following command, make sure to change SP_MQTT_HOST/PORT/CURRENCY/AREA/TOPIC/ENTITY to your own settings.
+Install from Docker hub using the following command, make sure to change SP_MQTT_HOST/PORT/CURRENCY/AREA/TOPIC/ENTITY/DECIMALS to your own settings.
 
 With the default/example settings, the image will fetch spot prices every full hour, and forward it to homeassistant/sensor/spotprice_*/state, it will also send homeassistant/sensor/spotprice_*/config to make mqtt autodiscover the entities correctly.
 
@@ -42,7 +42,7 @@ docker run \
         -e SP_ENTITY=spotprice \
         -e SP_DECIMALS=5 \
         --name="spotprice-mqtt" \
-        hexagon/spotprice-mqtt
+        hexagon/spotprice-mqtt:latest
 ```
 
 Logs available by running
@@ -69,6 +69,8 @@ First stop and remove previous version
 ```docker stop spotprice-mqtt```
 
 ```docker rm spotprice-mqtt```
+
+```docker pull hexagon/spotprice-mqtt:latest```
 
 Then follow the above instruction to re-install from Docker Hub (or manually if you wish).
 
