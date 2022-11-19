@@ -36,6 +36,7 @@ try {
 let result;
 try {
     result = [
+        ...await spotprice("hourly", config.area, config.currency, new Date(new Date().getTime()-oneDayMs)),
         ...await spotprice("hourly", config.area, config.currency, new Date()),
         ...await spotprice("hourly", config.area, config.currency, new Date(new Date().getTime()+oneDayMs)),
     ];
