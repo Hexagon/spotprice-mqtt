@@ -43,11 +43,17 @@ try {
     logAndExit("failed to fetch " + e.toString(), 1);
 }
 
-async function publishDevice(name, id, state) {
-    logger("publishing " + name + " " + state);
+async function publishDevice(name, id, state, type) {
+    if (type !== "json") {
+        logger("publishing " + name + " " + state);
+    } else {
+        logger("publishing " + name + " [json]");
+    }
     let
         stateTopic = config.topic + id + "/state",
         configTopic = config.topic + id + "/config",
+        deviceConfig;
+    if (type === "monetary") {
         deviceConfig = {
             device_class: "monetary",
             name: name,
@@ -55,6 +61,13 @@ async function publishDevice(name, id, state) {
             unit_of_measurement: config.currency + "/kWh",
             object_id: id
         };
+    } else {
+        deviceConfig = {
+            name: name,
+            state_topic: stateTopic,
+            object_id: id
+        };
+    }
     try {
         await client.publish(configTopic, JSON.stringify(deviceConfig)); 
         await client.publish(stateTopic, state);
@@ -75,7 +88,6 @@ const
     extremesToday = findMinMaxPriceAtDate(result, new Date()),
     extremesTomorrow = findMinMaxPriceAtDate(result, dateTomorrow);
 
-    console.log(extremesTomorrow);
 // Convenience function which applies extra costs to the spotprice
 function preparePrice(price) {
     if (price !== null) {
@@ -90,17 +102,18 @@ function preparePrice(price) {
 }
 
 // Ok, ready to publish
-await publishDevice("Spot price now", config.entity + "_now", preparePrice(findPriceAt(result, new Date())));
-await publishDevice("Spot price in 1 hour", config.entity + "_1h", preparePrice(findPriceAt(result, new Date(new Date().getTime()+oneHourMs))));
-await publishDevice("Spot price in 6 hours", config.entity + "_6h", preparePrice(findPriceAt(result, new Date(new Date().getTime()+oneHourMs*6))));
-await publishDevice("Spot price in 12 hours", config.entity + "_12h", preparePrice(findPriceAt(result, new Date(new Date().getTime()+oneHourMs*12))));
-await publishDevice("Highest upcomping spot price today ", config.entity + "_today_max", preparePrice(extremesToday.maxVal));
-await publishDevice("Highest upcomping spot price today time", config.entity + "_today_max_time", extremesToday.maxTime);
-await publishDevice("Lowest upcomping spot price today", config.entity + "_today_min", preparePrice(extremesToday.minVal));
-await publishDevice("Lowest upcomping spot price today time", config.entity + "_today_min_time", extremesToday.minTime);
-await publishDevice("Highest upcomping spot price tomorrow", config.entity + "_tomorrow_max", preparePrice(extremesTomorrow.maxVal));
-await publishDevice("Highest upcomping spot price tomorrow time", config.entity + "_tomorrow_max_time", extremesTomorrow.maxTime);
-await publishDevice("Lowest upcomping spot price tomorrow", config.entity + "_tomorrow_min", preparePrice(extremesTomorrow.minVal));
-await publishDevice("Lowest upcomping spot price tomorrow time", config.entity + "_tomorrow_min_time", extremesTomorrow.minTime);
+await publishDevice("Spot price now", config.entity + "_now", preparePrice(findPriceAt(result, new Date())), "monetary");
+await publishDevice("Spot price in 1 hour", config.entity + "_1h", preparePrice(findPriceAt(result, new Date(new Date().getTime()+oneHourMs))), "monetary");
+await publishDevice("Spot price in 6 hours", config.entity + "_6h", preparePrice(findPriceAt(result, new Date(new Date().getTime()+oneHourMs*6))), "monetary");
+await publishDevice("Spot price in 12 hours", config.entity + "_12h", preparePrice(findPriceAt(result, new Date(new Date().getTime()+oneHourMs*12))), "monetary");
+await publishDevice("Highest upcomping spot price today ", config.entity + "_today_max", preparePrice(extremesToday.maxVal), "monetary");
+await publishDevice("Highest upcomping spot price today time", config.entity + "_today_max_time", extremesToday.maxTime, "datetime");
+await publishDevice("Lowest upcomping spot price today", config.entity + "_today_min", preparePrice(extremesToday.minVal), "monetary");
+await publishDevice("Lowest upcomping spot price today time", config.entity + "_today_min_time", extremesToday.minTime, "datetime");
+await publishDevice("Highest upcomping spot price tomorrow", config.entity + "_tomorrow_max", preparePrice(extremesTomorrow.maxVal), "monetary");
+await publishDevice("Highest upcomping spot price tomorrow time", config.entity + "_tomorrow_max_time", extremesTomorrow.maxTime, "datetime");
+await publishDevice("Lowest upcomping spot price tomorrow", config.entity + "_tomorrow_min", preparePrice(extremesTomorrow.minVal), "monetary");
+await publishDevice("Lowest upcomping spot price tomorrow time", config.entity + "_tomorrow_min_time", extremesTomorrow.minTime, "datetime");
+await publishDevice("Spot price data", config.entity + "_data", JSON.stringify(result), "json");
 
 await client.disconnect();

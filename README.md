@@ -36,6 +36,7 @@ These sensors are provided (if you use the default value for SP_ENTITY, which is
 | sensor.spotprice_tomorrow_max_time           | ISO8601 date | Datetime when highest spot price occur |
 | sensor.spotprice_tomorrow_min                | Float | Lowest spot price tomorrow             |
 | sensor.spotprice_tomorrow_min_time           | ISO8601 date | Datetime when lowest spot price occur  |
+| sensor.spotprice_data                        | JSON | Raw data to build a forecast chart  |
 
 These environment variables can be sent to docker
 
