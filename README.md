@@ -1,6 +1,14 @@
 # spotprice-mqtt
 
-This project provides a docker image which allows users collect spot prices from the web, and forward it to a MQTT broker.
+Docker image which periodically scrapes spot prices from the web, and forward it to a MQTT broker.
+
+### Features
+
+*  Build in automation, update prices every 30 minutes
+*  Sends future spot prices as separate states (+1 hour, +6 hours, +12 hours)
+*  Allows to add extra cost and apply a factor (e.g. VAT) onto spot prices
+*  Handle time zone conversion automatically, just supply and receive local time
+*  Supports Home Assistant MQTT auto discovery ootb
 
 ## Installation
 
@@ -43,7 +51,7 @@ These environment variables can be sent to docker
 | SP_FACTOR     | Price correction factor             | 1                      |
 | SP_EXTRA      | Price correction before factor      | 0                      |
 
-To get actual prices in sweden as of nov 2022 you set SP_EXTRA to about 0.10 (10 öre certificate fees etc), and SP_FACTOR to 1.25 (25% VAT)
+To get actual prices in sweden as of nov 2022 you set SP_EXTRA to about 0.95 (9.5 öre certificate fees etc), and SP_FACTOR to 1.25 (25% VAT)
 
 Example command using homeassistant/sensors/ as base topic, which will make HA autodiscover the entities.
 
@@ -78,10 +86,7 @@ If you want to build the docker image yourself, clone this repository and run
 
 Then use the command from the installation section, but replace ```hexagon/spotprice-mqtt``` with ```local-spotprice-mqtt```.
 
-```
-docker run -d --net=host --restart=always -e SP_MQTT_HOST=192.168.1.4 -e SP_MQTT_PORT=1883 -e SP_CURRENCY=SEK -e SP_AREA=SE2 -e SP_TOPIC=homeassistant/sensor/ -e SP_ENTITY=spotprice --name="spotprice-mqtt" local-spotprice-mqtt
-```
-### Upgrading from a previous version
+## Upgrading
 
 First stop and remove previous version
 
@@ -97,6 +102,6 @@ Then follow the above instruction to re-install from Docker Hub (or manually if 
 
 ## Running src/spotprices.js standalone
 
-Something like this:
+Use omething like this:
 
 `deno run -A .\src\spotpricer.js --host=192.168.1.4 --port=1883 --currency=NOK --area SE2 --factor 1 --currency SEK --topic=homeassistant/sensor/ --entity spotprice --decimals 5 --factor 1 --extra 0`
