@@ -7,7 +7,7 @@ Docker image which periodically scrapes spot prices from the web, and forward it
 *  Build in automation, update prices every 30 minutes
 *  Sends future spot prices as separate states (+1 hour, +6 hours, +12 hours)
 *  Allows to add extra cost and apply a factor (e.g. VAT) onto spot prices
-*  Handle time zone conversion automatically, just supply and receive local time
+*  Handles time zone conversion automatically, just supply and receive local time
 *  Supports Home Assistant MQTT auto discovery ootb
 
 ## Installation
@@ -51,7 +51,7 @@ These environment variables can be sent to docker
 | SP_FACTOR     | Price correction factor             | 1                      |
 | SP_EXTRA      | Price correction before factor      | 0                      |
 
-To get actual prices in sweden as of nov 2022 you set SP_EXTRA to about 0.95 (9.5 öre certificate fees etc), and SP_FACTOR to 1.25 (25% VAT)
+To get actual prices in sweden as of nov 2022 you set SP_EXTRA to about 0.095 (9.5 öre certificate fees etc), and SP_FACTOR to 1.25 (25% VAT)
 
 Example command using homeassistant/sensors/ as base topic, which will make HA autodiscover the entities.
 

@@ -78,7 +78,7 @@ const
 // Convenience function which applies extra costs to the spotprice
 function preparePrice(price) {
     // Add price first - befora applying the price factor
-    price = (price + config.extra) * config.factor / 1000;
+    price = ( (price / 1000) + config.extra) * config.factor;
 
     // ... Allow reducing the number of decials
     return price ? price.toFixed(config.decimals) : "";
