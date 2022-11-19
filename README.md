@@ -69,6 +69,7 @@ docker run \
         -e SP_ENTITY=spotprice \
         -e SP_DECIMALS=5 \
         -e SP_FACTOR=1 \
+        -e SP_EXTRA=0 \
         --name="spotprice-mqtt" \
         hexagon/spotprice-mqtt:latest
 ```
