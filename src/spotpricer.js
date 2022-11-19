@@ -75,13 +75,18 @@ const
     extremesToday = findMinMaxPriceAtDate(result, new Date()),
     extremesTomorrow = findMinMaxPriceAtDate(result, dateTomorrow);
 
+    console.log(extremesTomorrow);
 // Convenience function which applies extra costs to the spotprice
 function preparePrice(price) {
-    // Add price first - befora applying the price factor
-    price = ( (price / 1000) + config.extra) * config.factor;
+    if (price !== null) {
+        // Add price first - befora applying the price factor
+        price = ( (price / 1000) + config.extra) * config.factor;
 
-    // ... Allow reducing the number of decials
-    return price ? price.toFixed(config.decimals) : "";
+        // ... Allow reducing the number of decials
+        return price ? price.toFixed(config.decimals) : "";
+    } else {
+        return "";
+    }
 }
 
 // Ok, ready to publish

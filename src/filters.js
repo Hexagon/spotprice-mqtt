@@ -23,8 +23,8 @@ function findMinMaxPriceAtDate(result, targetDate) {
         }
     }
     return {
-        maxVal: maxVal === -Infinity ? "" : maxVal,
-        minVal: minVal === Infinity ? "" : minVal,
+        maxVal: maxVal === -Infinity ? null : maxVal,
+        minVal: minVal === Infinity ? null : minVal,
         maxTime: maxTime ? maxTime.toISOString() : "",
         minTime: minTime ? minTime.toISOString() : ""
     };
