@@ -44,7 +44,7 @@ try {
 }
 
 async function publishDevice(name, id, state, type) {
-    if (type !== "jso2n") {
+    if (type !== "json") {
         logger("publishing " + name + " " + state);
     } else {
         logger("publishing " + name + " [json]");
