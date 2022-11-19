@@ -44,13 +44,14 @@ try {
 }
 
 async function publishDevice(name, id, state, type) {
-    if (type !== "json") {
+    if (type !== "jso2n") {
         logger("publishing " + name + " " + state);
     } else {
         logger("publishing " + name + " [json]");
     }
     let
         stateTopic = config.topic + id + "/state",
+        attributesTopic = config.topic + id + "/attributes",
         configTopic = config.topic + id + "/config",
         deviceConfig;
     if (type === "monetary") {
@@ -59,6 +60,13 @@ async function publishDevice(name, id, state, type) {
             name: name,
             state_topic: stateTopic,
             unit_of_measurement: config.currency + "/kWh",
+            object_id: id
+        };
+    } else if (type === "json" ) {
+        deviceConfig = {
+            name: name,
+            state_topic: stateTopic,
+            json_attributes_topic: attributesTopic,
             object_id: id
         };
     } else {
@@ -70,6 +78,12 @@ async function publishDevice(name, id, state, type) {
     }
     try {
         await client.publish(configTopic, JSON.stringify(deviceConfig)); 
+        if(type=="json") {
+            await client.publish(stateTopic, "");
+            await client.publish(attributesTopic, state);
+        } else {
+            await client.publish(stateTopic, state);
+        }
         await client.publish(stateTopic, state);
     } catch (e) {
         logger("failed to publish " + e.toString());
@@ -114,6 +128,6 @@ await publishDevice("Highest upcomping spot price tomorrow", config.entity + "_t
 await publishDevice("Highest upcomping spot price tomorrow time", config.entity + "_tomorrow_max_time", extremesTomorrow.maxTime, "datetime");
 await publishDevice("Lowest upcomping spot price tomorrow", config.entity + "_tomorrow_min", preparePrice(extremesTomorrow.minVal), "monetary");
 await publishDevice("Lowest upcomping spot price tomorrow time", config.entity + "_tomorrow_min_time", extremesTomorrow.minTime, "datetime");
-await publishDevice("Spot price data", config.entity + "_data", JSON.stringify(result), "json");
+await publishDevice("Spot price data", config.entity + "_data", JSON.stringify({ history: result.map(r=>{ return {st:r.startTime,p:preparePrice(r.spotPrice)};}) }), "json");
 
 await client.disconnect();
