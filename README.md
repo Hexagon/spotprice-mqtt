@@ -6,9 +6,12 @@ Docker image which periodically scrapes spot prices from the web, and forward it
 
 *  Build in automation, update prices every 30 minutes
 *  Sends future spot prices as separate states (+1 hour, +6 hours, +12 hours)
+*  Sensds average spot price for today and tomorrow
+*  Sensds average spot price for night, morning, evening and night, both today and tomorrow
 *  Allows to add extra cost and apply a factor (e.g. VAT) onto spot prices
 *  Handles time zone conversion automatically, just supply and receive local time
 *  Supports Home Assistant MQTT auto discovery ootb
+*  Sends full dataset in JSON format as an attribute to `sensor.spotprice_data`, allowing to create a forecast chart in homeassistant unsing (as an example) apexchart-card
 
 ## Installation
 
@@ -36,6 +39,16 @@ These sensors are provided (if you use the default value for SP_ENTITY, which is
 | sensor.spotprice_tomorrow_max_time           | ISO8601 date | Datetime when highest spot price occur |
 | sensor.spotprice_tomorrow_min                | Float | Lowest spot price tomorrow             |
 | sensor.spotprice_tomorrow_min_time           | ISO8601 date | Datetime when lowest spot price occur  |
+| sensor.spotprice_avg           | Float | Average spotprice today |
+| sensor.spotprice_night_avg           | Float | Average spotprice today 00:00-06:00  |
+| sensor.spotprice_morning_avg           | Float | Average spotprice today 06:00-12:00  |
+| sensor.spotprice_afternoon_avg           | Float | Average spotprice today 12:00-18:00  |
+| sensor.spotprice_evening_avg           | Float | Average spotprice today 18:00-24:00  |
+| sensor.spotprice_tomorrow_avg           | Float | Average spotprice tomorrow |
+| sensor.spotprice_tomorrow_night_avg           | Float | Average spotprice tomorrow 00:00-06:00  |
+| sensor.spotprice_tomorrow_morning_avg           | Float | Average spotprice tomorrow 06:00-12:00  |
+| sensor.spotprice_tomorrow_afternoon_avg           | Float | Average spotprice tomorrow 12:00-18:00  |
+| sensor.spotprice_tomorrow_evening_avg           | Float | Average spotprice tomorrow 18:00-24:00  |
 | sensor.spotprice_data                        | JSON | Raw data to build a forecast chart  |
 
 These environment variables can be sent to docker

@@ -6,6 +6,22 @@ function findPriceAt(result, targetDate) {
             return row.spotPrice;
 }
 
+// Find average electricity price at a specific time, between to times
+function avgPriceBetween(result, date, offsetFrom, offsetTo) {
+    let sum = 0,
+        count = 0;
+    const
+        from = new Date(date.getTime()+offsetFrom),
+        to = new Date(date.getTime()+offsetTo);
+    for(let row of result) {
+        if(row.startTime >= from && row.endTime <= to) {
+            sum += row.spotPrice;
+            count++;
+        }
+    }
+    return sum/count;
+}
+
 // Find max price
 function findMinMaxPriceAtDate(result, targetDate) {
     let maxTime, maxVal = -Infinity;
@@ -30,4 +46,4 @@ function findMinMaxPriceAtDate(result, targetDate) {
     };
 }
 
-export { findPriceAt, findMinMaxPriceAtDate };
+export { findPriceAt, findMinMaxPriceAtDate, avgPriceBetween };

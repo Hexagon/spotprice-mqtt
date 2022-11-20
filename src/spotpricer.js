@@ -2,7 +2,7 @@ import { spotprice } from "https://deno.land/x/spotprice@0.0.3/dist/spotprice.mi
 import { Client } from 'https://deno.land/x/mqtt@0.1.2/deno/mod.ts';
 import { config } from './config.js';
 import { logger, logAndExit } from "./logger.js";
-import { findPriceAt, findMinMaxPriceAtDate } from "./filters.js";
+import { findPriceAt, findMinMaxPriceAtDate, avgPriceBetween } from "./filters.js";
 
 // Some nice constants!
 const
@@ -93,10 +93,15 @@ async function publishDevice(name, id, state, type) {
 }
 
 // Generate a Date which represents 00:00:01 tomorrow
-const dateTomorrow = new Date(new Date().getTime()+oneDayMs);
+const dateToday = new Date(new Date().getTime());
+dateToday.setHours(0);
+dateToday.setMinutes(0);
+dateToday.setSeconds(0);
+
+const dateTomorrow = new Date(dateToday.getTime()+oneDayMs+7200);
 dateTomorrow.setHours(0);
 dateTomorrow.setMinutes(0);
-dateTomorrow.setSeconds(1);
+dateTomorrow.setSeconds(0);
 
 // Find extremes in result set
 const
@@ -129,6 +134,19 @@ await publishDevice("Highest upcomping spot price tomorrow", config.entity + "_t
 await publishDevice("Highest upcomping spot price tomorrow time", config.entity + "_tomorrow_max_time", extremesTomorrow.maxTime, "datetime");
 await publishDevice("Lowest upcomping spot price tomorrow", config.entity + "_tomorrow_min", preparePrice(extremesTomorrow.minVal), "monetary");
 await publishDevice("Lowest upcomping spot price tomorrow time", config.entity + "_tomorrow_min_time", extremesTomorrow.minTime, "datetime");
+
+await publishDevice("Average spot price today", config.entity + "_avg", preparePrice(avgPriceBetween(result,dateToday,0,oneHourMs*24)), "monetary");
+await publishDevice("Average spot price today night", config.entity + "_night_avg", preparePrice(avgPriceBetween(result,dateToday,0,oneHourMs*6)), "monetary");
+await publishDevice("Average spot price today morning", config.entity + "_morning_avg", preparePrice(avgPriceBetween(result,dateToday,oneHourMs*6,oneHourMs*12)), "monetary");
+await publishDevice("Average spot price today afternoon", config.entity + "_afternoon_avg", preparePrice(avgPriceBetween(result,dateToday,oneHourMs*12,oneHourMs*18)), "monetary");
+await publishDevice("Average spot price today evening", config.entity + "_evening_avg", preparePrice(avgPriceBetween(result,dateToday,oneHourMs*18,oneHourMs*24)), "monetary");
+
+await publishDevice("Average spot price tomorrow", config.entity + "_tomorrow_avg", preparePrice(avgPriceBetween(result,dateTomorrow,0,oneHourMs*24)), "monetary");
+await publishDevice("Average spot price tomorrow night", config.entity + "_tomorrow_night_avg", preparePrice(avgPriceBetween(result,dateTomorrow,0,oneHourMs*6)), "monetary");
+await publishDevice("Average spot price tomorrow morning", config.entity + "_tomorrow_morning_avg", preparePrice(avgPriceBetween(result,dateTomorrow,oneHourMs*6,oneHourMs*12)), "monetary");
+await publishDevice("Average spot price tomorrow afternoon", config.entity + "_tomorrow_afternoon_avg", preparePrice(avgPriceBetween(result,dateTomorrow,oneHourMs*12,oneHourMs*18)), "monetary");
+await publishDevice("Average spot price tomorrow evening", config.entity + "_tomorrow_evening_avg", preparePrice(avgPriceBetween(result,dateTomorrow,oneHourMs*18,oneHourMs*24)), "monetary");
+
 await publishDevice("Spot price data", config.entity + "_data", JSON.stringify({ history: result.map(r=>{ return {st:r.startTime,p:preparePrice(r.spotPrice)};}) }), "json");
 
 await client.disconnect();
