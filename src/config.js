@@ -1,19 +1,18 @@
-
 import { parse } from "https://deno.land/std/flags/mod.ts";
-import { logger, logAndExit } from "./logger.js";
+import { logAndExit } from "./logger.js";
 
 // Set up defaults
 const defaultConfig = {
-    host: undefined,
-    port: undefined,
-    topic: "homeassistant/sensor/",
-    entity:"spotprice",
-    area: "SE2",
-    currency: "SEK",
-    decimals: 5,
-    factor: 1,
-    extra: 0,
-    connectionTimeoutMs: 20 * 1000
+  host: undefined,
+  port: undefined,
+  topic: "homeassistant/sensor/",
+  entity: "spotprice",
+  area: "SE2",
+  currency: "SEK",
+  decimals: 5,
+  factor: 1,
+  extra: 0,
+  connectionTimeoutMs: 20 * 1000,
 };
 
 // Parse cli arguments
@@ -36,8 +35,7 @@ config.topic = config.topic.toLowerCase().trim();
 config.entity = config.entity.toLowerCase().trim();
 config.currency = config.currency.toUpperCase().trim();
 config.area = config.area.toUpperCase().trim();
-config.decimals = parseInt(config.decimals, 10),
-config.factor = parseFloat(config.factor);
+config.decimals = parseInt(config.decimals, 10), config.factor = parseFloat(config.factor);
 config.extra = parseFloat(config.extra);
 
 // All good!
