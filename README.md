@@ -119,4 +119,4 @@ Then follow the above instruction to re-install from Docker Hub (or manually if 
 
 Use omething like this:
 
-`deno run -A .\src\spotpricer.js --host=192.168.1.4 --port=1883 --currency=NOK --area SE2 --factor 1 --currency SEK --topic=homeassistant/sensor/ --entity spotprice --decimals 5 --factor 1 --extra 0`
+`deno run -A .\build\spotpricer.js --host=192.168.1.4 --port=1883 --currency=NOK --area SE2 --factor 1 --currency SEK --topic=homeassistant/sensor/ --entity spotprice --decimals 5 --factor 1 --extra 0`

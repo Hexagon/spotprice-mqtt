@@ -9,7 +9,7 @@ RUN chmod 0644 /etc/crontabs/root
 
 # Copy radoneye script
 RUN mkdir /spotprice-mqtt
-COPY src/* /spotprice-mqtt/
+COPY build/* /spotprice-mqtt/
 COPY script/* /spotprice-mqtt/
 
 # Give execution rights on the launcher script
