@@ -1,4 +1,4 @@
-import { parse } from "https://deno.land/std/flags/mod.ts";
+import { parse } from "https://deno.land/std@0.165.0/flags/mod.ts";
 import { logAndExit } from "./logger.js";
 
 // Set up defaults
