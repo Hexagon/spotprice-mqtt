@@ -1,6 +1,6 @@
 # spotprice-mqtt
 
-Docker image which periodically scrapes spot prices from the web, and forward it to a MQTT broker.
+Dockerized Deno application which periodically scrapes spot prices from the web, and forward it to a MQTT broker.
 
 ### Features
 
