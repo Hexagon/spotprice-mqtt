@@ -15,6 +15,7 @@ function avgPriceBetween(result, date, offsetFrom, offsetTo) {
     to = new Date(date.getTime() + offsetTo);
   for (const row of result) {
     if (row.startTime >= from && row.endTime <= to) {
+      console.log(row.startTime, row.endTime, row.spotPrice);
       sum += row.spotPrice;
       count++;
     }

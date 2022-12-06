@@ -1,8 +1,35 @@
-import { spotprice } from "https://deno.land/x/spotprice@0.0.3/dist/spotprice.min.mjs";
 import { Client } from "https://deno.land/x/mqtt@0.1.2/deno/mod.ts";
 import { config } from "./config.js";
 import { logAndExit, logger } from "./logger.js";
 import { avgPriceBetween, findMinMaxPriceAtDate, findPriceAt } from "./filters.js";
+
+const spotprice = async (area, currency, inDate) => {
+  const 
+    baseUrl = "https://spot.56k.guru/api",
+    entsoeEndpoint = "/entsoe",
+    exrateEndpoint = "/exrate",
+    params = {
+      period: "hourly",
+      date: inDate.toLocaleDateString('sv-SE'),
+      area: area
+    },
+    entsoeUrl = `${baseUrl}${entsoeEndpoint}?${new URLSearchParams(params)}`,
+    exrateUrl = `${baseUrl}${exrateEndpoint}`,
+    entsoeResult = await fetch(entsoeUrl),
+    entsoeJson = await entsoeResult.json();
+    entsoeJson.data = entsoeJson.data.filter(e => new Date(e.startTime).toLocaleDateString('sv-SE') === inDate.toLocaleDateString('sv-SE'));
+  if (currency !== "EUR") {
+    const
+      exrateResult = await fetch(exrateUrl),
+      exrateJson = exrateResult.json(),
+      currencyClean = currency.toUpperCase().trim();
+    for(const e of entsoeJson.data) {
+      e.spotPrice = e.spotPrice / extrateJson.data.entries[currencyClean];
+      e.unit = e.unit.replace("EUR", currencyClean);
+    }
+  }
+  return entsoeJson.data;
+}
 
 // Some nice constants!
 const oneHourMs = 3600 * 1000,
@@ -34,9 +61,9 @@ try {
 let result;
 try {
   result = [
-    ...await spotprice("hourly", config.area, config.currency, new Date(new Date().getTime() - oneDayMs)),
-    ...await spotprice("hourly", config.area, config.currency, new Date()),
-    ...await spotprice("hourly", config.area, config.currency, new Date(new Date().getTime() + oneDayMs)),
+    ...await spotprice(config.area, config.currency, new Date(new Date().getTime() - oneDayMs)),
+    ...await spotprice(config.area, config.currency, new Date()),
+    ...await spotprice(config.area, config.currency, new Date(new Date().getTime() + oneDayMs)),
   ];
 } catch (e) {
   logAndExit("failed to fetch " + e.toString(), 1);
@@ -120,30 +147,7 @@ function preparePrice(price) {
 }
 
 // Ok, ready to publish
-await publishDevice("Spot price now", config.entity + "_now", preparePrice(findPriceAt(result, new Date())), "monetary");
-await publishDevice("Spot price in 1 hour", config.entity + "_1h", preparePrice(findPriceAt(result, new Date(new Date().getTime() + oneHourMs))), "monetary");
-await publishDevice("Spot price in 6 hours", config.entity + "_6h", preparePrice(findPriceAt(result, new Date(new Date().getTime() + oneHourMs * 6))), "monetary");
-await publishDevice("Spot price in 12 hours", config.entity + "_12h", preparePrice(findPriceAt(result, new Date(new Date().getTime() + oneHourMs * 12))), "monetary");
-await publishDevice("Highest upcomping spot price today ", config.entity + "_today_max", preparePrice(extremesToday.maxVal), "monetary");
-await publishDevice("Highest upcomping spot price today time", config.entity + "_today_max_time", extremesToday.maxTime, "datetime");
-await publishDevice("Lowest upcomping spot price today", config.entity + "_today_min", preparePrice(extremesToday.minVal), "monetary");
-await publishDevice("Lowest upcomping spot price today time", config.entity + "_today_min_time", extremesToday.minTime, "datetime");
-await publishDevice("Highest upcomping spot price tomorrow", config.entity + "_tomorrow_max", preparePrice(extremesTomorrow.maxVal), "monetary");
-await publishDevice("Highest upcomping spot price tomorrow time", config.entity + "_tomorrow_max_time", extremesTomorrow.maxTime, "datetime");
-await publishDevice("Lowest upcomping spot price tomorrow", config.entity + "_tomorrow_min", preparePrice(extremesTomorrow.minVal), "monetary");
-await publishDevice("Lowest upcomping spot price tomorrow time", config.entity + "_tomorrow_min_time", extremesTomorrow.minTime, "datetime");
-
 await publishDevice("Average spot price today", config.entity + "_avg", preparePrice(avgPriceBetween(result, dateToday, 0, oneHourMs * 24)), "monetary");
-await publishDevice("Average spot price today night", config.entity + "_night_avg", preparePrice(avgPriceBetween(result, dateToday, 0, oneHourMs * 6)), "monetary");
-await publishDevice("Average spot price today morning", config.entity + "_morning_avg", preparePrice(avgPriceBetween(result, dateToday, oneHourMs * 6, oneHourMs * 12)), "monetary");
-await publishDevice("Average spot price today afternoon", config.entity + "_afternoon_avg", preparePrice(avgPriceBetween(result, dateToday, oneHourMs * 12, oneHourMs * 18)), "monetary");
-await publishDevice("Average spot price today evening", config.entity + "_evening_avg", preparePrice(avgPriceBetween(result, dateToday, oneHourMs * 18, oneHourMs * 24)), "monetary");
-
-await publishDevice("Average spot price tomorrow", config.entity + "_tomorrow_avg", preparePrice(avgPriceBetween(result, dateTomorrow, 0, oneHourMs * 24)), "monetary");
-await publishDevice("Average spot price tomorrow night", config.entity + "_tomorrow_night_avg", preparePrice(avgPriceBetween(result, dateTomorrow, 0, oneHourMs * 6)), "monetary");
-await publishDevice("Average spot price tomorrow morning", config.entity + "_tomorrow_morning_avg", preparePrice(avgPriceBetween(result, dateTomorrow, oneHourMs * 6, oneHourMs * 12)), "monetary");
-await publishDevice("Average spot price tomorrow afternoon", config.entity + "_tomorrow_afternoon_avg", preparePrice(avgPriceBetween(result, dateTomorrow, oneHourMs * 12, oneHourMs * 18)), "monetary");
-await publishDevice("Average spot price tomorrow evening", config.entity + "_tomorrow_evening_avg", preparePrice(avgPriceBetween(result, dateTomorrow, oneHourMs * 18, oneHourMs * 24)), "monetary");
 
 await publishDevice(
   "Spot price data",

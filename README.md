@@ -4,7 +4,7 @@ Dockerized Deno application which periodically scrapes spot prices from the web,
 
 ### Features
 
-- Build in automation, update prices every 30 minutes
+- Built in automation, update prices every 30 minutes
 - Sends future spot prices as separate states (+1 hour, +6 hours, +12 hours)
 - Sensds average spot price for today and tomorrow
 - Sensds average spot price for night, morning, evening and night, both today and tomorrow
