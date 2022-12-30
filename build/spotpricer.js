@@ -1695,7 +1695,7 @@ config.decimals = parseInt(config.decimals, 10), config.factor = parseFloat(conf
 config.extra = parseFloat(config.extra);
 function findPriceAt(result, targetDate) {
     for (const row of result){
-        if (row.time <= targetDate && row.time + 3600 * 1000 > targetDate) {
+        if (row.time <= targetDate && new Date(row.time.getTime() + 3600 * 1000) > targetDate) {
             return row.price;
         }
     }

@@ -1,7 +1,7 @@
 // Find electricity price at a specific time
 function findPriceAt(result, targetDate) {
   for (const row of result) {
-    if (row.time <= targetDate && row.time + 3600*1000 > targetDate) {
+     if (row.time <= targetDate && new Date((row.time.getTime() + 3600*1000)) > targetDate) {
       return row.price;
     }
   }
