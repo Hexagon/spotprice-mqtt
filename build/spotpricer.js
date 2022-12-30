@@ -2,123 +2,6 @@
 // deno-lint-ignore-file
 // This code was bundled using `deno bundle` and it's not recommended to edit it manually
 
-function minitz(y, m, d, h, i, s, tz, throwOnInvalid) {
-    return minitz.fromTZ(minitz.tp(y, m, d, h, i, s, tz), throwOnInvalid);
-}
-minitz.fromTZISO = (localTimeStr, tz, throwOnInvalid)=>{
-    return minitz.fromTZ(parseISOLocal(localTimeStr, tz), throwOnInvalid);
-};
-minitz.fromTZ = function(tp, throwOnInvalid) {
-    const inDate = new Date(Date.UTC(tp.y, tp.m - 1, tp.d, tp.h, tp.i, tp.s)), offset = getTimezoneOffset(tp.tz, inDate), dateGuess = new Date(inDate.getTime() - offset), dateOffsGuess = getTimezoneOffset(tp.tz, dateGuess);
-    if (dateOffsGuess - offset === 0) {
-        return dateGuess;
-    } else {
-        const dateGuess2 = new Date(inDate.getTime() - dateOffsGuess), dateOffsGuess2 = getTimezoneOffset(tp.tz, dateGuess2);
-        if (dateOffsGuess2 - dateOffsGuess === 0) {
-            return dateGuess2;
-        } else if (!throwOnInvalid && dateOffsGuess2 - dateOffsGuess > 0) {
-            return dateGuess2;
-        } else if (!throwOnInvalid) {
-            return dateGuess;
-        } else {
-            throw new Error("Invalid date passed to fromTZ()");
-        }
-    }
-};
-minitz.toTZ = function(d, tzStr) {
-    const td = new Date(d.toLocaleString("sv-SE", {
-        timeZone: tzStr
-    }));
-    return {
-        y: td.getFullYear(),
-        m: td.getMonth() + 1,
-        d: td.getDate(),
-        h: td.getHours(),
-        i: td.getMinutes(),
-        s: td.getSeconds(),
-        tz: tzStr
-    };
-};
-minitz.tp = (y, m, d, h, i, s, tz)=>{
-    return {
-        y: y,
-        m: m,
-        d: d,
-        h: h,
-        i: i,
-        s: s,
-        tz: tz
-    };
-};
-function getTimezoneOffset(timeZone, date = new Date) {
-    const tz = date.toLocaleString("en", {
-        timeZone: timeZone,
-        timeStyle: "long"
-    }).split(" ").slice(-1)[0];
-    const dateString = date.toLocaleString();
-    return Date.parse(`${dateString} UTC`) - Date.parse(`${dateString} ${tz}`);
-}
-function parseISOLocal(dtStr, tz) {
-    const pd = new Date(Date.parse(dtStr));
-    if (isNaN(pd)) {
-        throw new Error("minitz: Invalid ISO8601 passed to parser.");
-    }
-    const stringEnd = dtStr.substring(9);
-    if (dtStr.includes("Z") || stringEnd.includes("-") || stringEnd.includes("+")) {
-        return minitz.tp(pd.getUTCFullYear(), pd.getUTCMonth() + 1, pd.getUTCDate(), pd.getUTCHours(), pd.getUTCMinutes(), pd.getUTCSeconds(), "Etc/UTC");
-    } else {
-        return minitz.tp(pd.getFullYear(), pd.getMonth() + 1, pd.getDate(), pd.getHours(), pd.getMinutes(), pd.getSeconds(), tz);
-    }
-}
-minitz.minitz = minitz;
-const npBaseApiUrl = "https://www.nordpoolgroup.com/api/marketdata/page", periods = {
-    hourly: 10,
-    daily: 11,
-    weekly: 12,
-    monthly: 13,
-    yearly: 14
-};
-async function spotprice(period, requestedArea, currency, endDate, urlOverride, resultOverride) {
-    const dOslo = minitz.toTZ(endDate, "Europe/Oslo"), formattedEndDateOslo = `${dOslo.d.toString().padStart(2, "0")}-${dOslo.m.toString().padStart(2, "0")}-${dOslo.y}`;
-    let url;
-    if (urlOverride) {
-        url = urlOverride;
-    } else {
-        const params = new URLSearchParams;
-        if (currency) params.append("currency", currency.trim().toUpperCase());
-        if (endDate) params.append("endDate", formattedEndDateOslo);
-        const periodId = periods[period];
-        if (!periodId) {
-            throw new Error("Invalid period, please use hourly, daily etc...");
-        }
-        url = `${npBaseApiUrl}/${periodId}?${params.toString()}`;
-    }
-    let result = resultOverride;
-    if (!resultOverride) {
-        const fetcher = await fetch(url);
-        result = await fetcher.json();
-    }
-    const requestedEntity = result.conf.Entities.find((e)=>{
-        return e.Name == requestedArea;
-    });
-    if (!requestedEntity) {
-        throw new Error("Requested area code not found");
-    }
-    const spotPrices = [], unit = result.data.Units[0];
-    for (const row of result.data.Rows){
-        if (row.IsExtraRow) continue;
-        const startTime = row.StartTime, endTime = row.EndTime, column = row.Columns[requestedEntity.Index - 1], generatedRow = {
-            startTime: minitz.fromTZISO(startTime, "Europe/Oslo"),
-            endTime: minitz.fromTZISO(endTime, "Europe/Oslo"),
-            areaCode: column.Name,
-            spotPrice: parseFloat(column.Value.replace(" ", "").replace(",", ".")),
-            unit: unit
-        };
-        spotPrices.push(generatedRow);
-    }
-    return spotPrices;
-}
-spotprice.spotprice = spotprice;
 function encodeLength(x) {
     const output = [];
     do {
@@ -1812,8 +1695,8 @@ config.decimals = parseInt(config.decimals, 10), config.factor = parseFloat(conf
 config.extra = parseFloat(config.extra);
 function findPriceAt(result, targetDate) {
     for (const row of result){
-        if (row.startTime <= targetDate && row.endTime > targetDate) {
-            return row.spotPrice;
+        if (row.time <= targetDate && row.time + 3600 * 1000 > targetDate) {
+            return row.price;
         }
     }
 }
@@ -1821,8 +1704,8 @@ function avgPriceBetween(result, date, offsetFrom, offsetTo) {
     let sum = 0, count = 0;
     const from = new Date(date.getTime() + offsetFrom), to = new Date(date.getTime() + offsetTo);
     for (const row of result){
-        if (row.startTime >= from && row.endTime <= to) {
-            sum += row.spotPrice;
+        if (row.time >= from && row.time <= to) {
+            sum += row.price;
             count++;
         }
     }
@@ -1832,14 +1715,14 @@ function findMinMaxPriceAtDate(result, targetDate) {
     let maxTime, maxVal = -Infinity;
     let minTime, minVal = Infinity;
     for (const row of result){
-        if ((row.startTime <= targetDate && row.endTime > targetDate || row.startTime > targetDate) && targetDate.toLocaleDateString() == row.startTime.toLocaleDateString()) {
-            if (maxVal === undefined || maxVal < row.spotPrice) {
-                maxVal = row.spotPrice;
-                maxTime = row.startTime;
+        if ((row.time <= targetDate && row.time + 3600 * 1000 > targetDate || row.time > targetDate) && targetDate.toLocaleDateString() == row.time.toLocaleDateString()) {
+            if (maxVal === undefined || maxVal < row.price) {
+                maxVal = row.price;
+                maxTime = row.time;
             }
-            if (minVal > row.spotPrice) {
-                minVal = row.spotPrice;
-                minTime = row.startTime;
+            if (minVal > row.price) {
+                minVal = row.price;
+                minTime = row.time;
             }
         }
     }
@@ -1850,6 +1733,22 @@ function findMinMaxPriceAtDate(result, targetDate) {
         minTime: minTime ? minTime.toISOString() : ""
     };
 }
+const spotprice = async (area, currency, inDate)=>{
+    const baseUrl = "https://spot.56k.guru/api/v2", entsoeEndpoint = "/spot", params = {
+        period: "hourly",
+        startDate: inDate.toLocaleDateString('sv-SE'),
+        endDate: inDate.toLocaleDateString('sv-SE'),
+        area,
+        currency
+    }, entsoeUrl = `${baseUrl}${entsoeEndpoint}?${new URLSearchParams(params)}`, entsoeResult = await fetch(entsoeUrl), entsoeJson = await entsoeResult.json();
+    entsoeJson.data = entsoeJson.data.map(({ time , price  })=>{
+        return {
+            time: new Date(Date.parse(time)),
+            price
+        };
+    });
+    return entsoeJson.data;
+};
 const oneHourMs = 3600 * 1000, oneDayMs = oneHourMs * 24;
 let client;
 try {
@@ -1870,9 +1769,9 @@ try {
 let result;
 try {
     result = [
-        ...await spotprice("hourly", config.area, config.currency, new Date(new Date().getTime() - oneDayMs)),
-        ...await spotprice("hourly", config.area, config.currency, new Date()),
-        ...await spotprice("hourly", config.area, config.currency, new Date(new Date().getTime() + oneDayMs))
+        ...await spotprice(config.area, config.currency, new Date(new Date().getTime() - oneDayMs)),
+        ...await spotprice(config.area, config.currency, new Date()),
+        ...await spotprice(config.area, config.currency, new Date(new Date().getTime() + oneDayMs))
     ];
 } catch (e1) {
     logAndExit("failed to fetch " + e1.toString(), 1);
@@ -1907,15 +1806,18 @@ async function publishDevice(name, id, state, type) {
             object_id: id
         };
     }
+    const publishOpts = {
+        retain: true
+    };
     try {
-        await client.publish(configTopic, JSON.stringify(deviceConfig));
+        await client.publish(configTopic, JSON.stringify(deviceConfig), publishOpts);
         if (type == "json") {
-            await client.publish(stateTopic, "");
-            await client.publish(attributesTopic, state);
+            await client.publish(stateTopic, "", publishOpts);
+            await client.publish(attributesTopic, state, publishOpts);
         } else {
-            await client.publish(stateTopic, state);
+            await client.publish(stateTopic, state, publishOpts);
         }
-        await client.publish(stateTopic, state);
+        await client.publish(stateTopic, state, publishOpts);
     } catch (e) {
         logger("failed to publish " + e.toString());
         Deno.exit(1);
@@ -1929,7 +1831,6 @@ const dateTomorrow = new Date(dateToday.getTime() + oneDayMs + 7200 * 1000);
 dateTomorrow.setHours(0);
 dateTomorrow.setMinutes(0);
 dateTomorrow.setSeconds(0);
-const extremesToday = findMinMaxPriceAtDate(result, new Date()), extremesTomorrow = findMinMaxPriceAtDate(result, dateTomorrow);
 function preparePrice(price) {
     if (price !== null) {
         price = (price / 1000 + config.extra) * config.factor;
@@ -1938,6 +1839,7 @@ function preparePrice(price) {
         return "";
     }
 }
+const extremesToday = findMinMaxPriceAtDate(result, new Date()), extremesTomorrow = findMinMaxPriceAtDate(result, dateTomorrow);
 await publishDevice("Spot price now", config.entity + "_now", preparePrice(findPriceAt(result, new Date())), "monetary");
 await publishDevice("Spot price in 1 hour", config.entity + "_1h", preparePrice(findPriceAt(result, new Date(new Date().getTime() + oneHourMs))), "monetary");
 await publishDevice("Spot price in 6 hours", config.entity + "_6h", preparePrice(findPriceAt(result, new Date(new Date().getTime() + oneHourMs * 6))), "monetary");

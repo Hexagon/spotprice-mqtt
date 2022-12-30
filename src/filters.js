@@ -1,8 +1,8 @@
 // Find electricity price at a specific time
 function findPriceAt(result, targetDate) {
   for (const row of result) {
-    if (row.startTime <= targetDate && row.endTime > targetDate) {
-      return row.spotPrice;
+    if (row.time <= targetDate && row.time + 3600*1000 > targetDate) {
+      return row.price;
     }
   }
 }
@@ -14,9 +14,8 @@ function avgPriceBetween(result, date, offsetFrom, offsetTo) {
   const from = new Date(date.getTime() + offsetFrom),
     to = new Date(date.getTime() + offsetTo);
   for (const row of result) {
-    if (row.startTime >= from && row.endTime <= to) {
-      console.log(row.startTime, row.endTime, row.spotPrice);
-      sum += row.spotPrice;
+    if (row.time >= from && row.time <= to) {
+      sum += row.price;
       count++;
     }
   }
@@ -28,14 +27,14 @@ function findMinMaxPriceAtDate(result, targetDate) {
   let maxTime, maxVal = -Infinity;
   let minTime, minVal = Infinity;
   for (const row of result) {
-    if (((row.startTime <= targetDate && row.endTime > targetDate) || row.startTime > targetDate) && targetDate.toLocaleDateString() == row.startTime.toLocaleDateString()) {
-      if (maxVal === undefined || maxVal < row.spotPrice) {
-        maxVal = row.spotPrice;
-        maxTime = row.startTime;
+    if (((row.time <= targetDate && row.time + 3600*1000 > targetDate) || row.time > targetDate) && targetDate.toLocaleDateString() == row.time.toLocaleDateString()) {
+      if (maxVal === undefined || maxVal < row.price) {
+        maxVal = row.price;
+        maxTime = row.time;
       }
-      if (minVal > row.spotPrice) {
-        minVal = row.spotPrice;
-        minTime = row.startTime;
+      if (minVal > row.price) {
+        minVal = row.price;
+        minTime = row.time;
       }
     }
   }
