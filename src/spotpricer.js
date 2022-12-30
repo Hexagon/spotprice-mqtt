@@ -174,10 +174,3 @@ await publishDevice("Spot price data", config.entity + "_data", JSON.stringify({
 }), "json");
 
 await client.disconnect();
-
-console.log( result.map((r)=>{
-  return {
-      st: r.time,
-      p: preparePrice(r.price)
-  };
-}));
