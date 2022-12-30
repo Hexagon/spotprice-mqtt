@@ -1865,9 +1865,15 @@ await publishDevice("Average spot price tomorrow evening", config.entity + "_tom
 await publishDevice("Spot price data", config.entity + "_data", JSON.stringify({
     history: result.map((r)=>{
         return {
-            st: r.startTime,
-            p: preparePrice(r.spotPrice)
+            st: r.time,
+            p: preparePrice(r.price)
         };
     })
 }), "json");
 await client.disconnect();
+console.log(result.map((r)=>{
+    return {
+        st: r.time,
+        p: preparePrice(r.price)
+    };
+}));
