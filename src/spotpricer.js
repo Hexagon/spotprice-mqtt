@@ -1,33 +1,23 @@
 import { Client } from "https://deno.land/x/mqtt@0.1.2/deno/mod.ts";
 import { config } from "./config.js";
 import { logAndExit, logger } from "./logger.js";
-import { avgPriceBetween, findMinMaxPriceAtDate, findPriceAt } from "./filters.js";
+import { avgPriceBetween, findMinMaxPriceAtDate } from "./filters.js";
 
 const spotprice = async (area, currency, inDate) => {
   const 
-    baseUrl = "https://spot.56k.guru/api",
-    entsoeEndpoint = "/entsoe",
-    exrateEndpoint = "/exrate",
+    baseUrl = "https://spot.56k.guru/api/v2",
+    entsoeEndpoint = "/spot",
     params = {
       period: "hourly",
-      date: inDate.toLocaleDateString('sv-SE'),
-      area: area
+      startDate: inDate.toLocaleDateString('sv-SE'),
+      endDate: inDate.toLocaleDateString('sv-SE'),
+      area,
+      currecy
     },
     entsoeUrl = `${baseUrl}${entsoeEndpoint}?${new URLSearchParams(params)}`,
-    exrateUrl = `${baseUrl}${exrateEndpoint}`,
     entsoeResult = await fetch(entsoeUrl),
     entsoeJson = await entsoeResult.json();
-    entsoeJson.data = entsoeJson.data.filter(e => new Date(e.startTime).toLocaleDateString('sv-SE') === inDate.toLocaleDateString('sv-SE'));
-  if (currency !== "EUR") {
-    const
-      exrateResult = await fetch(exrateUrl),
-      exrateJson = exrateResult.json(),
-      currencyClean = currency.toUpperCase().trim();
-    for(const e of entsoeJson.data) {
-      e.spotPrice = e.spotPrice / extrateJson.data.entries[currencyClean];
-      e.unit = e.unit.replace("EUR", currencyClean);
-    }
-  }
+    entsoeJson.data = entsoeJson.data.filter(e => new Date(e.time).toLocaleDateString('sv-SE') === inDate.toLocaleDateString('sv-SE'));
   return entsoeJson.data;
 }
 
@@ -101,15 +91,18 @@ async function publishDevice(name, id, state, type) {
       object_id: id,
     };
   }
+  const publishOpts = {
+    retain: true;
+  }
   try {
-    await client.publish(configTopic, JSON.stringify(deviceConfig));
+    await client.publish(configTopic, JSON.stringify(deviceConfig),publishOpts);
     if (type == "json") {
-      await client.publish(stateTopic, "");
-      await client.publish(attributesTopic, state);
+      await client.publish(stateTopic, "",publishOpts);
+      await client.publish(attributesTopic, state,publishOpts);
     } else {
-      await client.publish(stateTopic, state);
+      await client.publish(stateTopic, state,publishOpts);
     }
-    await client.publish(stateTopic, state);
+    await client.publish(stateTopic, state,publishOpts);
   } catch (e) {
     logger("failed to publish " + e.toString());
     Deno.exit(1);
@@ -128,10 +121,6 @@ const dateTomorrow = new Date(dateToday.getTime() + oneDayMs + 7200*1000);
 dateTomorrow.setHours(0);
 dateTomorrow.setMinutes(0);
 dateTomorrow.setSeconds(0);
-
-// Find extremes in result set
-const extremesToday = findMinMaxPriceAtDate(result, new Date()),
-  extremesTomorrow = findMinMaxPriceAtDate(result, dateTomorrow);
 
 // Convenience function which applies extra costs to the spotprice
 function preparePrice(price) {
@@ -154,10 +143,10 @@ await publishDevice(
   config.entity + "_data",
   JSON.stringify({
     history: result.map((r) => {
-      return { st: r.startTime, p: preparePrice(r.spotPrice) };
+      return { st: r.time, p: preparePrice(r.price) };
     }),
   }),
-  "json",
+  "json"
 );
 
 await client.disconnect();
